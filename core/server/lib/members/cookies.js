@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const cookie = require('cookie');
 
+const MAX_AGE = 60 * 60 * 24 * 184;
+
 module.exports = function cookies(sessionSecret) {
     function encodeCookie(data) {
         const encodedData = encodeURIComponent(data);
@@ -20,7 +22,7 @@ module.exports = function cookies(sessionSecret) {
 
     function setCookie(member) {
         return cookie.serialize('signedin', member.id, {
-            maxAge: 180,
+            maxAge: MAX_AGE,
             path: '/ghost/api/v2/members/token',
             sameSite: 'strict',
             httpOnly: true,
