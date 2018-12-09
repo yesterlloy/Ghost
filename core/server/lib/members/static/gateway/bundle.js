@@ -3,6 +3,12 @@
     if (window.parent === window) {
         return;
     }
+    let storage;
+    try {
+        storage = window.localStorage;
+    } catch (e) {
+        storage = window.sessionStorage;
+    }
     const origin = new URL(document.referrer).origin;
     const handlers = {};
     function addMethod(method, fn) {
@@ -32,17 +38,17 @@
         }).then((res) => {
             if (!res.ok) {
                 if (res.status === 401) {
-                    window.localStorage.removeItem('signedin');
+                    storage.removeItem('signedin');
                 }
                 return null;
             }
-            window.localStorage.setItem('signedin', true);
+            storage.setItem('signedin', true);
             return res.text();
         });
     }
 
     addMethod('init', function init() {
-        if (window.localStorage.getItem('signedin')) {
+        if (storage.getItem('signedin')) {
             window.parent.postMessage({event: 'signedin'}, origin);
         } else {
             window.parent.postMessage({event: 'signedout'}, origin);
@@ -67,7 +73,7 @@
             })
         }).then((res) => {
             if (res.ok) {
-                window.localStorage.setItem('signedin', true);
+                storage.setItem('signedin', true);
             }
             return res.ok;
         });
@@ -87,7 +93,7 @@
             })
         }).then((res) => {
             if (res.ok) {
-                window.localStorage.setItem('signedin', true);
+                storage.setItem('signedin', true);
             }
             return res.ok;
         });
@@ -104,7 +110,7 @@
             })
         }).then((res) => {
             if (res.ok) {
-                window.localStorage.removeItem('signedin');
+                storage.removeItem('signedin');
             }
             return res.ok;
         });
@@ -138,14 +144,14 @@
             })
         }).then((res) => {
             if (res.ok) {
-                window.localStorage.setItem('signedin', true);
+                storage.setItem('signedin', true);
             }
             return res.ok;
         });
     });
 
     window.addEventListener('storage', function (event) {
-        if (event.storageArea !== window.localStorage) {
+        if (event.storageArea !== storage) {
             return;
         }
         const newValue = event.newValue;
