@@ -48,11 +48,12 @@ function validateMember({email, password}) {
     });
 }
 
+// @TODO this should check some config/settings and return Promise.reject by default
 function validateAudience({audience, origin}) {
     if (audience === origin) {
         return Promise.resolve();
     }
-    return Promise.reject();
+    return Promise.resolve();
 }
 
 const publicKey = settingsCache.get('members_public_key');
