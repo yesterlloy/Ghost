@@ -13,7 +13,8 @@ function getFreshState() {
         formData: {},
         query,
         formType,
-        showError: false
+        showError: false,
+        submitFail: false
     };
 }
 
@@ -78,47 +79,52 @@ export default class App extends Component {
     }
 
     signin({ email, password }) {
-        this.gatewayFrame.call('signin', {email, password}, function (err, successful) {
+        this.gatewayFrame.call('signin', {email, password}, (err, successful) => {
+            console.log("Signin values", err, successful);
             if (err || !successful) {
-                console.log("Unable to login", err);
+                this.setState({
+                    submitFail: true
+                })
             }
-            console.log("Successfully logged in");
         });
     }
 
     signup({ name, email, password }) {
-        this.gatewayFrame.call('signup', { name, email, password }, function (err, successful) {
+        this.gatewayFrame.call('signup', { name, email, password }, (err, successful) => {
             if (err || !successful) {
-                console.log("Unable to signup", err);
+                this.setState({
+                    submitFail: true
+                })
             }
-            console.log("Successfully signed up");
         });
     }
 
     requestPasswordReset({ email }) {
-        this.gatewayFrame.call('request-password-reset', {email}, function (err, successful) {
+        this.gatewayFrame.call('request-password-reset', {email}, (err, successful) => {
             if (err || !successful) {
-                console.log("Unable to send email", err);
+                this.setState({
+                    submitFail: true
+                })
+            } else {
+                window.location.hash = 'password-reset-sent';
             }
-            window.location.hash = 'password-reset-sent';
-            console.log("Email sent");
         });
     }
 
     resendPasswordResetEmail({ email }) {
-        this.gatewayFrame.call('request-password-reset', {email}, function (err, successful) {
+        this.gatewayFrame.call('request-password-reset', {email}, (err, successful) => {
             if (err || !successful) {
                 console.log("Unable to send email", err);
+            } else {
+                window.location.hash = 'password-reset-sent';
             }
-            window.location.hash = 'password-reset-sent';
-            console.log("Email sent");
         });
     }
 
     resetPassword({ password }) {
         const queryParams = new URLSearchParams(this.state.query);
         const token = queryParams.get('token') || '';
-        this.gatewayFrame.call('reset-password', {password, token}, function (err, successful) {
+        this.gatewayFrame.call('reset-password', {password, token}, (err, successful) => {
             if (err || successful) {
                 console.log("Unable to send email", err);
             }
@@ -126,52 +132,36 @@ export default class App extends Component {
         });
     }
 
-    showErrorType(errorType) {
+    hasError({errorType, data}) {
         if (!this.state.showError) {
             return false;
         }
         let value = '';
         switch(errorType) {
-            case 'email-not-found':
-                return false;
-            case 'no-password':
-                value = this.state.formData['password'];
+            case 'no-input':
+                value = this.state.formData[data];
                 return (!value);
-            case 'no-email':
-                value = this.state.formData['email'];
-                return (!value);
-            case 'no-name':
-                value = this.state.formData['name'];
-                return (!value);
-            case 'invalid-credentials':
-                return false;
-            case 'email-exists':
-                return false;
+            case 'form-submit':
+                return this.state.submitFail;
         }
     }
 
-    renderError({errorType, formType}) {
-        if (this.showErrorType(errorType)) {
+    renderError({error, formType}) {
+        if (this.hasError(error)) {
             let errorLabel = '';
-            switch(errorType) {
-                case 'email-not-found':
-                    errorLabel = "We couldn't find user with this email";
+            switch(error.errorType) {
+                case 'no-input':
+                    errorLabel = `Enter ${error.data}`;
                     break;
-                case 'no-password':
-                    errorLabel = "Enter password";
-                    break;
-                case 'no-email':
-                    errorLabel = "Enter email";
-                    break;
-                case 'no-name':
-                    errorLabel = "Enter name";
-                    break;
-                case 'invalid-credentials':
-                    errorLabel = "Invalid credentials";
-                    break;
-                case 'email-exists':
-                    errorLabel = "Email already exists";
-                    break;
+                case 'form-submit':
+                    switch(formType) {
+                        case 'signin':
+                            errorLabel = "Invalid credentials";
+                            break;
+                        case 'signup':
+                            errorLabel = "Email already exists!"
+                            break;
+                    }
             }
             return (
                 <span>{ errorLabel }</span>
@@ -217,6 +207,7 @@ export default class App extends Component {
                 hash = 'signin';
                 break;
         }
+        let formError = this.renderError({ error: {errorType: "form-submit"}, formType });
         return (
             <div className="flex flex-column">
                 <div className="gm-logo"></div>
@@ -231,6 +222,7 @@ export default class App extends Component {
                         </a>
                     </div>
                 </div>
+                <div class="gm-input-errortext">{ formError }</div>
             </div>
         )
     }
@@ -239,8 +231,7 @@ export default class App extends Component {
         let value = this.state.formData[name];
         let className = "";
         let forgot = (type === 'password' && formType === 'signin');
-        let inputError = this.renderError({ errorType: `no-${name}`, formType });
-
+        let inputError = this.renderError({ error: {errorType: 'no-input', data: name}, formType });
         className += (value ? "gm-input-filled" : "") + (forgot ? " gm-forgot-input" : "") + (inputError ? " gm-error" : "");
 
         return (
@@ -275,7 +266,8 @@ export default class App extends Component {
 
     onSubmitClick(e) {
         this.setState({
-            showError: true
+            showError: true,
+            submitFail: false
         });
     }
 
