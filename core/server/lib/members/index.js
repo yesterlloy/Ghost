@@ -144,10 +144,10 @@ module.exports = function MembersApi({
     });
 
     const staticRouter = Router();
-    staticRouter.use('/static', static(require('path').join(__dirname, './static/preact/dist')));
+    staticRouter.use('/static', static(require('path').join(__dirname, './static/auth/dist')));
     staticRouter.use('/gateway', static(require('path').join(__dirname, './static/gateway')));
     staticRouter.get('/*', (req, res) => {
-        res.sendFile(require('path').join(__dirname, './static/preact/dist/index.html'));
+        res.sendFile(require('path').join(__dirname, './static/auth/dist/index.html'));
     });
 
     router.use('/api', apiRouter);
