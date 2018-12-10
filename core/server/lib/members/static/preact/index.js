@@ -353,7 +353,7 @@ export default class App extends Component {
     renderFormComponent(formType = this.state.formType) {
         return (
             <div className="gm-modal-container">
-                <div className="gm-modal gm-auth-modal">
+                <div className="gm-modal gm-auth-modal" onClick={(e) => e.stopPropagation()}>
                     {this.renderFormHeaders(formType)}
                     {this.renderFormSection(formType)}
                 </div>
@@ -363,7 +363,7 @@ export default class App extends Component {
 
     render() {
         return (
-            <div className="gm-page-overlay">
+            <div className="gm-page-overlay" onClick={(e) => this.close(e)}>
                 {this.renderFormComponent()}
             </div>
         );
