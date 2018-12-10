@@ -179,7 +179,7 @@ export default class App extends Component {
                             errorLabel = "Wrong email or password";
                             break;
                         case 'signup':
-                            errorLabel = "Email already exists"
+                            errorLabel = "Email already registered"
                             break;
                     }
             }
